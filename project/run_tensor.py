@@ -21,8 +21,9 @@ class Network(minitorch.Module):
         self.layer3 = Linear(hidden_layers, 1)
 
     def forward(self, x):
-        # TODO: Implement for Task 2.5.
-        raise NotImplementedError('Need to implement for Task 2.5')
+        middle = self.layer1.forward(x).relu()
+        end = self.layer2.forward(middle).relu()
+        return self.layer3.forward(end).sigmoid()
 
 
 class Linear(minitorch.Module):
@@ -33,8 +34,11 @@ class Linear(minitorch.Module):
         self.out_size = out_size
 
     def forward(self, x):
-        # TODO: Implement for Task 2.5.
-        raise NotImplementedError('Need to implement for Task 2.5')
+        # this can probably break if the tensor's strides aren't normal,
+        # but matrix multiplication isn't supposed to be until the next module anyway
+        pts, in_size = x.shape
+        mat_mul = (self.weights.value * x.view(pts, in_size, 1)).sum(1).view(pts, self.out_size)
+        return mat_mul + self.bias.value
 
 
 def default_log_fn(epoch, total_loss, correct, losses):

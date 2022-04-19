@@ -190,7 +190,8 @@ class History:
         Returns:
             list of numbers : a derivative with respect to `inputs`
         """
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 1.4.
+        raise NotImplementedError('Need to implement for Task 1.4')
 
 
 class FunctionBase:
@@ -272,7 +273,12 @@ class FunctionBase:
         """
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 1.3.
+        derivs = cls.backward(ctx, d_output)
+        if not isinstance(derivs,tuple): derivs = (derivs,)
+        # return the derivatives corresponding to the nonconstant variables
+        return [(v, d) for v,d in zip(inputs, derivs) if not is_constant(v)]
+
 
 
 # Algorithms for backpropagation
@@ -293,7 +299,16 @@ def topological_sort(variable):
         list of Variables : Non-constant Variables in topological order
                             starting from the right.
     """
-    raise NotImplementedError('Need to include this file from past assignment.')
+    out = []
+    visited = []
+    def visit(v):
+        if is_constant(v) or v.unique_id in visited: return
+        for w in (v.history.inputs if v.history.inputs else []): visit(w)
+        out.append(v)
+        visited.append(v.unique_id)
+    visit(variable)
+    out.reverse()
+    return out
 
 
 def backpropagate(variable, deriv):
@@ -309,4 +324,17 @@ def backpropagate(variable, deriv):
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    raise NotImplementedError('Need to include this file from past assignment.')
+    var_list = topological_sort(variable)
+    var_dict = {}
+    var_dict[variable.unique_id] = deriv
+    for v in var_list:
+        if v.is_leaf(): v.accumulate_derivative(var_dict[v.unique_id])
+        else:
+            f = v.history.last_fn
+            ctx = v.history.ctx
+            inputs = v.history.inputs
+            for w, d in f.chain_rule(ctx, inputs, var_dict[v.unique_id]):
+                if w.unique_id in var_dict: var_dict[w.unique_id] += d
+                else: var_dict[w.unique_id] = d
+
+

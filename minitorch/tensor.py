@@ -133,7 +133,7 @@ class Tensor(Variable):
     def mean(self, dim=None):
         "Compute the mean over dimension `dim`"
         if dim is not None:
-            return self.sum(dim) / self.shape[dim]
+            return self.sum(dim) / int(self.shape[dim]) # added int is a hack to fix bug
         else:
             return self.sum() / self.size
 
@@ -191,6 +191,7 @@ class Tensor(Variable):
 
         """
 
+        other = self._ensure_tensor(other)
         # Case 1: Both the same shape.
         if self.shape == other.shape:
             return other
